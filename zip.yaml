@@ -1,0 +1,12 @@
+#  ansible-playbook -i inventory  zip.yaml 
+---
+- name: Zip Playbook
+  hosts: all
+  user: ec2-user
+  become: yes 
+  become_method: sudo 
+  tasks:    
+  - name: Zip logs 
+    command: 'find /var/log/ -type f -name "*.log" -mtime +90 -exec gzip -v9 {} +'
+  - name: Zip Big files
+    command: 'find /var/log/ -type f -name "*.log" -size +100M -exec gzip -v9 {} +'

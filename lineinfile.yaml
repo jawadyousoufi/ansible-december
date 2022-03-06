@@ -1,0 +1,28 @@
+#  ansible-playbook -i inventory  lineinfile.yaml 
+---
+- name: Content Playbook
+  hosts: all
+  user: ec2-user
+  become: yes 
+  become_method: sudo 
+  tasks:    
+  - name: Add a line to a file if the file does not exist, without passing regexp
+    ansible.builtin.lineinfile:
+      path: /tmp/testfile
+      line: 192.168.1.99 foo.lab.net foo
+      create: yes
+
+
+  - name: Ensure testfile content is changed
+    ansible.builtin.lineinfile:
+      path: /tmp/testfile
+      regexp: '^192.168.1.99'
+      line: 172.16.1.99 foo.lab.net foo
+
+
+
+  - name: Ensure SELinux is set to enforcing mode
+    ansible.builtin.lineinfile:
+      path: /etc/selinux/config
+      regexp: '^SELINUXTYPE='
+      line: SELINUXTYPE=mls

@@ -1,0 +1,59 @@
+---
+- name: Installs agent
+  hosts: all
+  become: yes
+  become_method: sudo 
+  vars_files:
+    r1soft/server.yaml
+  tasks:
+  - name: Create a repo
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.copy:
+      content: "deb http://repo.r1soft.com/apt stable main"
+      dest: /etc/apt/sources.list
+
+  - name: Add an Apt signing key
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.apt_key:
+      url: http://repo.r1soft.com/r1soft.asc 
+      state: present
+
+  - name: Run the equivalent of "apt-get update" as a separate step
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.apt:
+      update_cache: yes
+
+  - name: Install agent
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.package:
+      name: serverbackup-enterprise-agent
+      state: present
+    notify:
+    - Start R1soft Agent 
+    - Test Connection
+    - Test Connection for CentOS
+    - Get Key
+
+
+  handlers: 
+  - name: Test Connection
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.raw: serverbackup-setup --test-connection
+
+  - name: Test Connection for CentOS
+    when: ( ansible_facts['distribution'] == "CentOS" or ansible_facts['distribution_version'] == "7" )
+    ansible.builtin.raw: serverbackup-setup --test-connection
+
+
+
+  - name: Get Key
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.command: r1soft-setup --get-key http://"{{ server }}"
+
+
+  - name: Start R1soft Agent 
+    when: ( ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution_version'] == "16.04" )
+    ansible.builtin.systemd: 
+      name: sbm-agent.service
+      state: restarted
+      enabled: true

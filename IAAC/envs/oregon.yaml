@@ -1,0 +1,5 @@
+region: us-west-2
+key_name: laptop
+instance_type: t2.micro
+Name: Ansible
+image: ami-0341aeea105412b57

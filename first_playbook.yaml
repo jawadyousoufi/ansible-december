@@ -1,0 +1,26 @@
+#  ansible-playbook -i ../inventory  first_playbook.yaml 
+---
+- name: First Playbook
+  hosts: all
+  user: ec2-user
+  become: yes 
+  become_method: sudo 
+  tasks:
+
+  - name: Install telnet
+    package: 
+      name: telnet
+      state: absent
+
+  - name: Add user
+    user: 
+      name: lisa
+      state: absent
+
+  - name: Add group
+    group: 
+      name: sales
+      state: absent
+      
+  - name: Linux command 
+    command: "ls -l /tmp"

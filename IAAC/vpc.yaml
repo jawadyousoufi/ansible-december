@@ -1,0 +1,121 @@
+--- # ansible-playbook IAAC/vpc.yaml  
+- name: Create vpc 
+  hosts: localhost
+  vars_files:
+    envs/dev.yaml
+  tasks:
+  - name: create a VPC
+    amazon.aws.ec2_vpc_net:
+      name: Ansible
+      cidr_block: "{{ vpc_cidr_block }}"
+      region: "{{ region }}"
+      state: "{{ state }}"
+      tags: "{{ aws_tags }}"
+      tenancy: default
+    register: Ansible
+
+
+  - name: Get value 
+    debug: 
+      var: Ansible
+
+  - name: Get value 
+    debug: 
+      var: Ansible.vpc.id
+
+  - name: Get value 
+    debug: 
+      var: Ansible.vpc.cidr_block
+
+
+  - name: Get value 
+    debug: 
+      var: Ansible.vpc.tags
+
+
+  - name: Create public subnet 1
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ public_subnet1_cidr }}"
+      az: "{{ region }}a"
+      map_public: true
+      tags: "{{ aws_tags }}"
+    register: public_subnet1
+
+  - name: Create public subnet 2
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ public_subnet2_cidr }}"
+      az: "{{ region }}b"
+      map_public: true
+      tags: "{{ aws_tags }}"
+    register: public_subnet2
+
+  - name: Create public subnet 3
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ public_subnet3_cidr }}"
+      az: "{{ region }}c"
+      map_public: true
+      tags: "{{ aws_tags }}"
+    register: public_subnet3
+
+  - name: Create private subnet 1
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ private_subnet1_cidr }}"
+      az: "{{ region }}a"
+      tags: "{{ aws_tags }}"
+    register: private_subnet1
+
+  - name: Create private subnet 2
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ private_subnet2_cidr }}"
+      az: "{{ region }}b"
+      tags: "{{ aws_tags }}"
+    register: private_subnet2
+
+  - name: Create private subnet 3
+    amazon.aws.ec2_vpc_subnet:
+      region: "{{ region }}"
+      state: "{{ state }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      cidr: "{{ private_subnet3_cidr }}"
+      az: "{{ region }}c"
+      tags: "{{ aws_tags }}"
+    register: private_subnet3
+
+  - name: Create Internet gateway
+    community.aws.ec2_vpc_igw:
+      region: "{{ region }}"
+      vpc_id: "{{ Ansible.vpc.id }}"
+      state: "{{ state }}"
+      tags: "{{ aws_tags }}"
+    register: igw
+
+
+  # Basic creation example:
+  - name: Set up public subnet route table
+    community.aws.ec2_vpc_route_table:
+      vpc_id: "{{ Ansible.vpc.id }}"
+      region: "{{ region }}"
+      tags: "{{ aws_tags }}"
+      subnets:
+        - "{{ public_subnet1.subnet.id }}"
+        - "{{ public_subnet2.subnet.id }}"
+        - "{{ public_subnet3.subnet.id }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw.gateway_id }}"
+    register: public_route_table

@@ -1,0 +1,20 @@
+--- # ansible-playbook IAAC/ec2.yaml   --extra-vars "@IAAC/envs/virginia.yaml"
+- name: Create ec2 
+  hosts: localhost
+  tasks:
+  - name: EC
+    amazon.aws.ec2:
+      region: "{{ region }}"
+      key_name: "{{ key_name }}"
+      instance_type: "{{ instance_type }}"
+      image: "{{ image }}"
+      user_data: "sudo yum install httpd -y"
+      instance_tags:
+        Name: "{{ Name }}"
+
+  #   # Simple attachment action
+  - amazon.aws.ec2_vol:
+      instance: i-03fc87795a31b700d
+      volume_size: 5
+      device_name: sdd
+      region: "{{ region }}"

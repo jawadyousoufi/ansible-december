@@ -1,0 +1,19 @@
+--- # ansible-playbook IAAC/iam.yaml
+- name: Works with IAM
+  hosts: localhost
+  tasks:
+  - name: Create a user
+    community.aws.iam_user:
+      name: "{{ item }}"
+      state: present
+    with_items:
+    - testuser1
+    - testuser2
+    - testuser3
+
+
+
+  # - name: Create a group
+  #   community.aws.iam_group:
+  #     name: testgroup1
+  #     state: present
